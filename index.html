@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>ws2js</title>
+    </head>
+    <body>
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="2">Network Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Address:</td>
+                    <td id="infoAddr" class="mono"></td>
+                </tr>
+                <tr>
+                    <td>Websocket:</td>
+                    <td id="infoState" class="mono"></td>
+                </tr>
+            </tbody>
+        </table>
+	<canvas id="maincanvas"></canvas>
+    </body>
+    <style>
+        table, td {
+            border: 1px solid #333;
+        }
+        thead, tfoot {
+            background-color: #333;
+            color: #fff;
+        }
+        td {
+            padding: 0.5em;
+        }
+        .mono {
+            font-family: monospace;
+        }
+	#maincanvas {
+	    border: 1px solid lightgray;
+	}
+    </style>
+    <script type="text/javascript">
+
+    
+        const test = (data)=>{
+            new Function(`"use strict"; ${input} `)();
+        };
+
+
+        (function(){
+            let addr = 'ws://localhost:8080/ws';
+            let infoAddr = document.querySelector('#infoAddr');
+            let infoState = document.querySelector('#infoState');
+            let wsStates = [`CONNECTING`, `OPEN`, `CLOSING`, `CLOSED`];
+            let canvas = document.querySelector('#maincanvas');
+            let ctx = document.querySelector('#maincanvas').getContext('2d');
+	
+            const runCmd = (string)=>{
+	        Function(`"use strict"; ${string}`)();
+	    };
+	
+            const sleep = (ms) => {
+              return new Promise(resolve => setTimeout(resolve, ms));
+            };
+
+            const updateState = (string='', background='white')=>{
+                infoState.innerText = string;
+                infoState.style.background = background;
+            };
+
+            const openSocket = ()=> {
+                const socket = new WebSocket(addr);
+                updateState(wsStates[socket.readyState]);
+                infoAddr.innerText = socket.url;
+                socket.addEventListener('open', function (event) {
+                    updateState(wsStates[socket.readyState], 'lightgreen');
+                });
+                socket.addEventListener('closed', function (event) {
+                    updateState(wsStates[socket.readyState], 'lightgray');
+                });
+                socket.addEventListener('error', function (event) {
+                    let status = wsStates[socket.readyState] + ` with ERROR.`;
+                    updateState(status, 'pink');
+                });
+                socket.addEventListener('message', function (event) {
+                    console.log('Message from server ', event.data);
+                    runCmd(event.data)
+                });
+            };
+
+            openSocket();
+
+        }());
+    </script>
+
+</html>

@@ -1,0 +1,18 @@
+"""
+Example of ws2js Usage
+==============================
+"""
+
+def out(string):
+    s = string.replace('\n', ';')
+    print(s)
+
+
+prog = '''
+let canvas = document.createElement('canvas')
+canvas.setAttribute('id', 'maincanvas')
+canvas.style.border = 'solid 1px lightgray'
+document.body.appendChild(canvas)
+'''
+
+out(prog)
