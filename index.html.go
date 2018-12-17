@@ -13,21 +13,15 @@ const webpageData = `<!DOCTYPE html>
     <body>
         <table>
             <thead>
-                <tr>
-                    <th colspan="2">Network Status</th>
-                </tr>
+                <tr><th colspan="2">Network Status</th></tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Address:</td>
-                    <td id="infoAddr" class="mono"></td>
-                </tr>
-                <tr>
-                    <td>Websocket:</td>
-                    <td id="infoState" class="mono"></td>
-                </tr>
+                <tr><td>Address:</td><td id="infoAddr" class="mono"></td></tr>
+                <tr><td>Websocket:</td><td id="infoState" class="mono"></td></tr>
+                <tr><td>Message Count:</td><td id="infoCounter" class="mono"></td></tr>
             </tbody>
         </table>
+	<canvas id="maincanvas"></canvas>
     </body>
     <style>
         table, td {
@@ -43,23 +37,29 @@ const webpageData = `<!DOCTYPE html>
         .mono {
             font-family: monospace;
         }
+	#maincanvas {
+	    border: 1px solid lightgray;
+	}
     </style>
     <script type="text/javascript">
 
-    
-        const test = (data)=>{
-            new Function(` + "`" + `"use strict"; ${input} ` + "`" + `)();
-        };
-
+        var canvas = document.querySelector('#maincanvas');
+        var ctx = document.querySelector('#maincanvas').getContext('2d');
 
         (function(){
-            let addr = 'ws://localhost:8080/ws';
             let infoAddr = document.querySelector('#infoAddr');
             let infoState = document.querySelector('#infoState');
+            let infoCounter = document.querySelector('#infoCounter');
+            let messageCounter = 0;
+            let addr = 'ws://localhost:8080/ws';
             let wsStates = [` + "`" + `CONNECTING` + "`" + `, ` + "`" + `OPEN` + "`" + `, ` + "`" + `CLOSING` + "`" + `, ` + "`" + `CLOSED` + "`" + `];
 
+            const runCmd = (string)=>{
+	            Function(` + "`" + `"use strict"; ${string}` + "`" + `)();
+	        };
+
             const sleep = (ms) => {
-              return new Promise(resolve => setTimeout(resolve, ms));
+                return new Promise(resolve => setTimeout(resolve, ms));
             };
 
             const updateState = (string='', background='white')=>{
@@ -67,25 +67,28 @@ const webpageData = `<!DOCTYPE html>
                 infoState.style.background = background;
             };
 
+            const updateCounter = ()=>{
+                infoCounter.innerText = messageCounter;
+            }
+
             const openSocket = ()=> {
                 const socket = new WebSocket(addr);
                 updateState(wsStates[socket.readyState]);
                 infoAddr.innerText = socket.url;
-                socket.addEventListener('open', function (event) {
+                socket.addEventListener('open', function(event) {
                     updateState(wsStates[socket.readyState], 'lightgreen');
-
-                    socket.send('Hello Server!');
                 });
-                socket.addEventListener('closed', function (event) {
+                socket.addEventListener('closed', function(event) {
                     updateState(wsStates[socket.readyState], 'lightgray');
                 });
-                socket.addEventListener('error', function (event) {
+                socket.addEventListener('error', function(event) {
                     let status = wsStates[socket.readyState] + ` + "`" + ` with ERROR.` + "`" + `;
                     updateState(status, 'pink');
                 });
                 socket.addEventListener('message', function (event) {
-                    console.log('Message from server ', event.data);
-                    Function(` + "`" + `"use strict"; ${event.data} ` + "`" + `)();
+                    messageCounter++;
+                    updateCounter();
+                    runCmd(event.data)
                 });
             };
 

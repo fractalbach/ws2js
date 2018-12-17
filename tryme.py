@@ -27,13 +27,13 @@ def randomColorHex():
 
     
 def randomCanvasBackground():
-    s = "document.querySelector('#maincanvas').style.background = '#{}'"
+    s = "canvas.style.background = '#{}'"
+    # s = "document.querySelector('#maincanvas').style.background = '#{}'"
     s = s.format(randomColorHex())
     return s
 
 
 def main():
-    out(createCanvas)
     for _ in range(100):
         out(randomCanvasBackground())
         time.sleep(0.2)
